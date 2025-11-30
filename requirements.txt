@@ -1,0 +1,11 @@
+playwright
+pandas
+openpyxl
+plyer
+google-generativeai
+pydantic
+schedule
+python-dotenv
+fastapi
+uvicorn
+sqlalchemy

@@ -1,0 +1,60 @@
+{
+    "keywords": [
+        "AI",
+        "Machine Learning",
+        "Data Science",
+        "Product Management",
+        "Agile",
+        "Scrum",
+        "Product Strategy",
+        "Roadmap",
+        "Stakeholder Management",
+        "Requirements Gathering",
+        "Bottomline",
+        "Analytics",
+        "Cloud",
+        "SaaS",
+        "Innovation",
+        "Problem Solving",
+        "Communication",
+        "Collaboration",
+        "Technical Proficiency"
+    ],
+    "preferred_industries": [
+        "Software Development",
+        "Technology",
+        "Financial Technology (FinTech)",
+        "Cloud Computing",
+        "Data Analytics",
+        "AI-driven Solutions",
+        "SaaS Providers"
+    ],
+    "avoid_keywords": [
+        "Legacy Systems",
+        "Waterfall Methodology",
+        "Micromanagement",
+        "Lack of Innovation",
+        "Siloed Teams",
+        "Poor Communication",
+        "Resistance to Change",
+        "No career progression"
+    ],
+    "experience_level": "Mid-Senior Level",
+    "core_skills": [
+        "Product Management",
+        "AI/ML Product Development",
+        "Data Analysis",
+        "Agile Methodologies (Scrum)",
+        "Strategic Thinking",
+        "Roadmap Creation and Execution",
+        "Stakeholder Communication and Management",
+        "Requirements Definition",
+        "Problem-Solving",
+        "Cloud Technologies (AWS, Azure, GCP)",
+        "Data Visualization",
+        "Technical Understanding",
+        "Market Analysis"
+    ],
+    "cultural_fit": "The ideal company culture is one that embraces innovation, collaboration, and continuous learning. It is an agile environment that encourages experimentation, data-driven decision-making, and open communication. The company should value problem-solving, have a growth mindset, and support career development and advancement.",
+    "scoring_rubric": "A job posting should be scored out of 100 based on the following:\n\n**1. Core Skills Alignment (40 points):**\n   - **30-40 points:** If the job description explicitly requires 8 or more core skills listed above, give it a high score. Prioritize roles mentioning AI/ML specific product management, data analysis, and strategic thinking.\n   - **15-29 points:**  If the job requires 4-7 core skills, it's a moderate match. Assess the importance of the missing skills.\n   - **0-14 points:** If fewer than 4 core skills are required, it's a poor match. \n\n**2. Industry Preference (20 points):**\n   - **15-20 points:** If the job is in one of the preferred industries (Technology, SaaS, FinTech, AI solutions), give a high score.  Strong preference for SaaS and AI\n   - **5-14 points:**  If it's in a related but less preferred industry (e.g., general consulting), give a moderate score.\n   - **0-4 points:** If it's in an unrelated industry, give a low score.\n\n**3. Cultural Fit (20 points):**\n   - **15-20 points:**  If the job description emphasizes innovation, collaboration, agile methodologies, data-driven decisions, and open communication, give a high score. Look for phrases like 'fast-paced', 'dynamic', 'customer-centric', and 'innovative'.\n   - **5-14 points:** If some of these elements are present but not emphasized, give a moderate score.\n   - **0-4 points:** If the job description emphasizes rigid processes, hierarchical structure, or individual work, give a low score.\n\n**4. Keyword Presence (10 points):**\n   - **7-10 points:** If the job posting includes several keywords from the list (AI, ML, Product Roadmap, Stakeholder Management, etc.), award a high score. This indicates a good understanding of the role and its responsibilities.\n   - **3-6 points:** Some keywords are present, but key areas are lacking\n   - **0-2 points:** Few or none of the listed keywords appear\n\n**5. Avoidance of Red Flags (10 points):**\n   - **7-10 points:** If the job description *doesn't* contain any of the avoid keywords, award a high score. This suggests a positive and modern work environment.\n   - **0-6 points:** For each 'avoid' keyword *present* in the job description, deduct points. This could indicate potential issues with the company culture or the role's responsibilities."
+}
