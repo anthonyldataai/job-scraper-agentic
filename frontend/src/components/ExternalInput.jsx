@@ -15,7 +15,7 @@ export default function ExternalInput() {
             alert("Job added! The agents will process it shortly.");
             setUrl("");
         } catch (err) {
-            alert("Error adding job");
+            alert(err.response?.data?.detail || "Error adding job");
         }
     };
 

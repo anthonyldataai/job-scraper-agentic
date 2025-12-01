@@ -23,8 +23,24 @@ export default function LogViewer() {
 
     return (
         <div className="animate-fade-in">
-            <h1>Agent Logs</h1>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>Real-time activity from the agent swarm.</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <div>
+                    <h1>Agent Logs</h1>
+                    <p style={{ color: 'var(--text-secondary)' }}>Real-time activity from the agent swarm.</p>
+                </div>
+                <button
+                    className="btn"
+                    style={{ backgroundColor: '#ef4444', color: 'white', fontSize: '0.9rem' }}
+                    onClick={async () => {
+                        if (confirm('Clear all logs?')) {
+                            await axios.delete(`${API_URL}/logs`);
+                            fetchLogs();
+                        }
+                    }}
+                >
+                    Clear Logs
+                </button>
+            </div>
 
             <div className="card" style={{ background: '#1e293b', color: '#e2e8f0', minHeight: '500px', maxHeight: '80vh', overflowY: 'auto' }}>
                 {logs.map((log, idx) => (

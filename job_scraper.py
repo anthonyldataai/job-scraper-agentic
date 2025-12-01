@@ -794,8 +794,15 @@ async def scrape_all_jobs(test_mode=False, enabled_sources=None):
     log_agent_action("Scraper", f"Starting scrape for keywords: {keywords} (Test Mode: {test_mode})", status="INFO")
     log_agent_action("Scraper", f"Enabled sources: {enabled_sources}", status="INFO")
     
+    # Fetch jobs_per_source limit
+    jobs_per_source_str = get_config_value("jobs_per_source", "60")
+    try:
+        jobs_per_source = int(jobs_per_source_str)
+    except ValueError:
+        jobs_per_source = 60
+
     all_jobs = []
-    limit = 5 if test_mode else None
+    limit = 5 if test_mode else jobs_per_source
     
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)

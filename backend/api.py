@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from pydantic import BaseModel
@@ -38,6 +38,7 @@ class JobPostSchema(BaseModel):
     user_feedback_comment: Optional[str]
     source: str
     is_external: bool
+    created_at: Optional[datetime]
 
     class Config:
         orm_mode = True
@@ -91,9 +92,8 @@ def update_job(job_id: int, update_data: JobUpdateSchema, db: Session = Depends(
     return job
 
 @app.post("/jobs/external")
-def add_external_job(job_data: ExternalJobSchema, db: Session = Depends(get_db)):
-    # Placeholder: In a real app, we'd scrape this URL immediately
-    # For now, we just create a record
+def add_external_job(job_data: ExternalJobSchema, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    # Create initial record
     new_job = JobPost(
         title="External Job (Pending Scrape)",
         company="Unknown",
@@ -107,16 +107,82 @@ def add_external_job(job_data: ExternalJobSchema, db: Session = Depends(get_db))
         source="External",
         is_external=True,
         match_score=0,
-        match_reasoning="Pending evaluation"
+        match_reasoning="Pending evaluation",
+        created_at=datetime.now()
     )
     try:
         db.add(new_job)
         db.commit()
         db.refresh(new_job)
-        return {"message": "Job added", "id": new_job.id}
+        
+        # Trigger background processing
+        from agents.external_processor import ExternalJobProcessor
+        processor = ExternalJobProcessor()
+        background_tasks.add_task(processor.process_job, new_job.id, job_data.url)
+        
+        return {"message": "Job added and processing started", "id": new_job.id}
     except Exception as e:
         db.rollback()
+        print(f"Error adding external job: {e}") # Log to console
+        if "UNIQUE constraint failed" in str(e) or "IntegrityError" in str(e):
+             raise HTTPException(status_code=400, detail="Job with this link already exists.")
         raise HTTPException(status_code=400, detail=f"Error adding job: {str(e)}")
+
+@app.delete("/jobs")
+def delete_jobs(job_ids: List[int], db: Session = Depends(get_db)):
+    try:
+        db.query(JobPost).filter(JobPost.id.in_(job_ids)).delete(synchronize_session=False)
+        db.commit()
+        return {"message": f"Deleted {len(job_ids)} jobs"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/jobs/{job_id}/analyze_feedback")
+def analyze_feedback(job_id: int, db: Session = Depends(get_db)):
+    job = db.query(JobPost).filter(JobPost.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    if not job.user_feedback_comment:
+        return {"message": "No feedback to analyze"}
+
+    # Call LLM to analyze feedback
+    from utils.llm_client import get_llm_response
+    prompt = f"""
+    The user provided feedback on a job recommendation.
+    
+    Job: {job.title} at {job.company}
+    Current Reasoning: {job.match_reasoning}
+    
+    User Feedback: {job.user_feedback_comment}
+    
+    Task:
+    1. Analyze the user's feedback.
+    2. Update the reasoning to incorporate this feedback.
+    3. If the feedback is positive (thumbs up/positive text), explain why it fits better.
+    4. If negative, explain why it might not be a fit despite the score.
+    
+    Output ONLY the new reasoning text.
+    """
+    
+    new_reasoning = get_llm_response(prompt)
+    if new_reasoning:
+        job.match_reasoning = new_reasoning.strip()
+        db.commit()
+        return {"message": "Reasoning updated", "new_reasoning": new_reasoning}
+    
+    raise HTTPException(status_code=500, detail="Failed to generate analysis")
+
+@app.delete("/logs")
+def clear_logs(db: Session = Depends(get_db)):
+    try:
+        db.query(AgentLog).delete()
+        db.commit()
+        return {"message": "Logs cleared"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/logs", response_model=List[LogSchema])
 def get_logs(limit: int = 50, db: Session = Depends(get_db)):
@@ -201,3 +267,32 @@ def run_orchestrator_wrapper():
         scraper_status["state"] = "ERROR"
         scraper_status["message"] = f"Error: {str(e)}"
         print(f"Orchestrator Error: {e}")
+
+# --- Persona Management ---
+import json
+import os
+
+PERSONA_FILE = "success_persona.json"
+
+@app.get("/persona")
+def get_persona():
+    """Get the current success persona"""
+    try:
+        if os.path.exists(PERSONA_FILE):
+            with open(PERSONA_FILE, 'r') as f:
+                persona = json.load(f)
+            return persona
+        else:
+            return {"error": "Persona file not found"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error reading persona: {str(e)}")
+
+@app.post("/persona")
+def update_persona(persona: dict):
+    """Update the success persona"""
+    try:
+        with open(PERSONA_FILE, 'w') as f:
+            json.dump(persona, f, indent=4)
+        return {"message": "Persona updated successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error updating persona: {str(e)}")

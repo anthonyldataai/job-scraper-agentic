@@ -89,7 +89,7 @@ class LearnerAgent:
         """
         
         log_agent_action("Learner", "Generating Success Persona using LLM...", "INFO")
-        response = get_llm_response(prompt)
+        response = get_llm_response(prompt, model_name="gemini-1.5-pro")
         
         if response:
             try:
@@ -104,6 +104,12 @@ class LearnerAgent:
         else:
             log_agent_action("Learner", "Failed to get LLM response.", "ERROR")
             return None
+
+    def get_persona(self):
+        """Loads the persona from the file."""
+        if os.path.exists(self.persona_file):
+            return load_json(self.persona_file)
+        return None
 
 if __name__ == "__main__":
     agent = LearnerAgent()

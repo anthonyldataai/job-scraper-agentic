@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import PersonaEditor from './PersonaEditor';
 
 const API_URL = 'http://localhost:8000';
 
@@ -8,6 +9,7 @@ export default function ConfigPanel() {
         keywords: [],
         location: "",
         schedule_interval: "30",
+        jobs_per_source: "60",
         target_industries: [],
         enabled_sources: ['indeed', 'totaljobs', 'cwjobs', 'reed', 'glassdoor', 'linkedin']
     });
@@ -16,9 +18,12 @@ export default function ConfigPanel() {
     const [scraperStatus, setScraperStatus] = useState({ state: 'IDLE', message: '' });
     const [logs, setLogs] = useState([]);
     const [polling, setPolling] = useState(false);
+    const [persona, setPersona] = useState(null);
+    const [personaSaveStatus, setPersonaSaveStatus] = useState(null);
 
     useEffect(() => {
         fetchConfig();
+        fetchPersona();
     }, []);
 
     useEffect(() => {
@@ -60,6 +65,54 @@ export default function ConfigPanel() {
             console.error("Error fetching config:", err);
             setLoading(false);
         }
+    };
+
+    const fetchPersona = async () => {
+        try {
+            const res = await axios.get(`${API_URL}/persona`);
+            setPersona(res.data);
+        } catch (err) {
+            console.error("Error fetching persona:", err);
+        }
+    };
+
+    const savePersona = async () => {
+        try {
+            setPersonaSaveStatus('saving');
+            await axios.post(`${API_URL}/persona`, persona);
+            setPersonaSaveStatus('success');
+            setTimeout(() => setPersonaSaveStatus(null), 3000);
+        } catch (err) {
+            console.error("Error saving persona:", err);
+            setPersonaSaveStatus('error');
+            setTimeout(() => setPersonaSaveStatus(null), 3000);
+        }
+    };
+
+    const updatePersonaField = (field, value) => {
+        setPersona(prev => ({ ...prev, [field]: value }));
+    };
+
+    const updatePersonaArray = (field, index, value) => {
+        setPersona(prev => {
+            const newArray = [...prev[field]];
+            newArray[index] = value;
+            return { ...prev, [field]: newArray };
+        });
+    };
+
+    const addPersonaArrayItem = (field) => {
+        setPersona(prev => ({
+            ...prev,
+            [field]: [...prev[field], '']
+        }));
+    };
+
+    const removePersonaArrayItem = (field, index) => {
+        setPersona(prev => ({
+            ...prev,
+            [field]: prev[field].filter((_, i) => i !== index)
+        }));
     };
 
     const handleChange = (e) => {
@@ -105,8 +158,10 @@ export default function ConfigPanel() {
                 bulkData.push({ key, value: val });
             });
 
-            ['location', 'schedule_interval'].forEach(key => {
-                bulkData.push({ key, value: payload[key] });
+            ['location', 'schedule_interval', 'jobs_per_source'].forEach(key => {
+                // Ensure we send a string
+                const val = payload[key] !== undefined && payload[key] !== null ? String(payload[key]) : "";
+                bulkData.push({ key, value: val });
             });
 
             // Add enabled_sources
@@ -217,6 +272,20 @@ export default function ConfigPanel() {
                 </div>
 
                 <div className="form-group">
+                    <label className="block mb-2 font-semibold text-primary">Jobs per Source Limit</label>
+                    <input
+                        type="number"
+                        name="jobs_per_source"
+                        value={config.jobs_per_source || 60}
+                        onChange={handleChange}
+                        className="w-full p-3 rounded-lg border-2 border-border bg-surface focus:border-accent focus:outline-none transition-colors"
+                    />
+                    <p className="text-sm text-text-secondary mt-1">
+                        Stop scraping a source after retrieving this many jobs (Default: 60).
+                    </p>
+                </div>
+
+                <div className="form-group">
                     <label className="block mb-2 font-semibold text-primary">Schedule Interval (Minutes)</label>
                     <select
                         name="schedule_interval"
@@ -261,6 +330,14 @@ export default function ConfigPanel() {
                         </span>
                     )}
                 </div>
+
+                {/* Persona Editor */}
+                <PersonaEditor
+                    persona={persona}
+                    onUpdate={setPersona}
+                    onSave={savePersona}
+                    saveStatus={personaSaveStatus}
+                />
 
                 {/* Log Viewer Section */}
                 {(scraperStatus.state === 'RUNNING' || logs.length > 0) && (

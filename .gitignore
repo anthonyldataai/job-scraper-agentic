@@ -7,3 +7,34 @@ venv/
 env/
 *.egg-info/
 
+# Environment Variables
+.env
+
+# Database
+*.db
+*.sqlite3
+
+# Logs
+*.log
+
+# Data Files
+*.xlsx
+*.csv
+*.json
+!success_persona.json
+!package.json
+
+# Documents
+*.docx
+*.pdf
+
+# Debug Files
+*.png
+*.html
+*.tmp
+
+# Node.js / Frontend
+node_modules/
+dist/
+build/
+.DS_Store
